@@ -36,7 +36,7 @@ Color_Off       := "Red"        ; Text color when disabled
 Toggled  := 0
 TargetSC := GetKeySC(TargetKey) 
 GameID   := "ahk_exe " . TargetProcess
-Hotkey, %ActivationKey%, ToggleLabel 
+Hotkey, ~%ActivationKey%, ToggleLabel 
 
 if (ShowTooltip) {
     Gui, +AlwaysOnTop -Caption +ToolWindow +LastFound
