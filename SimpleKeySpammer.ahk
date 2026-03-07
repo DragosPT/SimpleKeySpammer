@@ -8,7 +8,7 @@
 ; [ TOGGLE SETTINGS ]
 ActivationKey   := "z"          ; The key you press to Turn On/Off
 Interval        := 500          ; Time between repeats (ms)
-ClickDelay      := 50           ; How long the key is held down (ms)
+
 
 ; [ TARGET SETTINGS ]
 TargetKey       := "1"          ; The actual key to press
@@ -76,10 +76,9 @@ SendRaw:
     if (OnlyInTarget && !WinActive(GameID))
         return
 
-    ; Hardware-level input injection
-    keybd_event(0, TargetSC, 0, 0) ; Key Down
-    Sleep, %ClickDelay%
-    keybd_event(0, TargetSC, 2, 0) ; Key Up
+    ; Simple, clean sending logic
+    Send, {%TargetKey% }
+
 return
 
 UpdateOverlay(Text, Color) {
