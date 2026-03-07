@@ -35,7 +35,6 @@ These define the core behavior of the automation.
 * **`ActivationKey`**: The physical key on your keyboard used to turn the spamming ON or OFF (e.g., `"z"`, `"F1"`, or `"Capslock"`).
 * **`Interval`**: The delay in milliseconds ($ms$) between each key press. 
     * *Example: `1000` = 1 press per second; `100` = 10 presses per second.*
-* **`ClickDelay`**: How long the key is "held down" before being released. This is crucial for games that don't register instantaneous inputs. `50ms` is a safe default.
 
 ### 2. Target Settings
 Determines what key is pressed and where it is sent.
@@ -65,6 +64,5 @@ Configures the on-screen display (OSD) that appears when you toggle the script.
 | Variable | Default | Purpose |
 | :--- | :--- | :--- |
 | `Interval` | `500` | Speed of spam (Lower = Faster) |
-| `ClickDelay` | `50` | Input "Hold" time for game registration |
 | `TargetProcess` | `GeForceNOW.exe` | The specific app the script monitors |
 | `OnlyInTarget` | `true` | Prevents accidental typing in other apps |
