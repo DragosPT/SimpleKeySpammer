@@ -92,7 +92,3 @@ UpdateOverlay(Text, Color) {
 HideOverlay:
     Gui, Hide
 return
-
-keybd_event(vk, sc, flags, info) {
-    dllcall("keybd_event", "uchar", vk, "uchar", sc, "uint", flags, "ptr", info)
-}
