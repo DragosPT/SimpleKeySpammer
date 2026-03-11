@@ -1,51 +1,65 @@
 #NoEnv
 #SingleInstance Force
+SetBatchLines, -1
 
 ; ==============================================================================
 ; --- CONFIGURATION ---
 ; ==============================================================================
+ActivationKey   := "z"          
+Interval        := 500          
 
-; [ TOGGLE SETTINGS ]
-ActivationKey   := "z"          ; The key you press to Turn On/Off
-Interval        := 500          ; Time between repeats (ms)
+TargetKey       := "1"          
+TargetProcesses := ["WoW.exe", "GeForceNOW.exe", "WowClassic.exe"] 
+OnlyInTarget    := true         
 
-
-; [ TARGET SETTINGS ]
-TargetKey       := "1"          ; The actual key to press
-TargetProcess   := "GeForceNOW.exe" ; Process name (e.g., Wow.exe, GeForceNOW.exe)
-OnlyInTarget    := true         ; If true, script only spams when window is active
-
-; [ SOUND SETTINGS ]
-PlaySound       := true         ; Set to false to mute beeps
-On_Pitch        := 750          ; Frequency of 'ON' beep (Hz)
-On_Time         := 100          ; Duration of 'ON' beep (ms)
-Off_Pitch       := 300          ; Frequency of 'OFF' beep (Hz)
-Off_Time        := 100          ; Duration of 'OFF' beep (ms)
+PlaySound       := false        
+On_Pitch        := 750          
+Off_Pitch       := 300          
 
 ; [ VISUAL SETTINGS ]
-ShowTooltip     := true         ; Set to false to hide on-screen text
-Tooltip_Dur     := 1000         ; How long text stays on screen (ms)
-TooltipX        := "Center"     ; Horizontal position (Center or pixel value)
-TooltipY        := 280           ; Vertical position (pixels from top)
-Color_On        := "Lime"       ; Text color when enabled
-Color_Off       := "Red"        ; Text color when disabled
+ShowTooltip     := true         
+Tooltip_Dur     := 1000         
+TooltipX        := "Center"     
+TooltipY        := 280          
+
+Color_On        := "00FF00"     ; Lime Green
+Color_Off       := "FF0000"     ; Bright Red
+CustomTrans     := "123456"     
+
+; --- ICON SETTINGS ---
+Icon_On         := "⚔ ⚔ ⚔"      
+Icon_Off        := "× × ×"      
 
 ; ==============================================================================
 ; --- INTERNAL SETUP ---
 ; ==============================================================================
-Toggled  := 0
-TargetSC := GetKeySC(TargetKey) 
-GameID   := "ahk_exe " . TargetProcess
+Toggled   := 0
+LockedEXE := ""
+
+for index, exe in TargetProcesses {
+    Process, Exist, %exe%
+    if (ErrorLevel) {
+        LockedEXE := "ahk_exe " . exe
+        break
+    }
+}
+
+if (LockedEXE == "") {
+    MsgBox, 48, Process Not Found, None of the specified games are running.`nScript will now exit., 3
+    ExitApp
+}
+
+; This is the line that was erroring. Ensure no spaces are after ToggleLabel below.
 Hotkey, ~%ActivationKey%, ToggleLabel 
 
 if (ShowTooltip) {
     Gui, +AlwaysOnTop -Caption +ToolWindow +LastFound
-    Gui, Color, ABCDEF 
-    Gui, Font, s24 w700, Verdana
-    Gui, Add, Text, vStatusText Center, --- READY ---
-    WinSet, TransColor, ABCDEF 
+    Gui, Color, %CustomTrans%
+    WinSet, TransColor, %CustomTrans%
+    Gui, Font, s40 w700, Segoe UI Symbol 
+    Gui, Add, Text, vStatusIcon Center w600, %Icon_Off%
 }
-return
+return ; End of Auto-Execute Section
 
 ; ==============================================================================
 ; --- LOGIC ---
@@ -53,40 +67,42 @@ return
 
 ToggleLabel:
     Toggled := !Toggled
+    
     if (Toggled) {
         SetTimer, SendRaw, %Interval%
-        if (ShowTooltip)
-            UpdateOverlay(" ENABLED", Color_On)
-        if (PlaySound)
-            SoundBeep, %On_Pitch%, %On_Time%
+        CurrentColor := Color_On
+        CurrentIcon  := Icon_On
     } else {
         SetTimer, SendRaw, Off
-        if (ShowTooltip)
-            UpdateOverlay(" DISABLED", Color_Off)
-        if (PlaySound)
-            SoundBeep, %Off_Pitch%, %Off_Time%
+        CurrentColor := Color_Off
+        CurrentIcon  := Icon_Off
     }
     
-    if (ShowTooltip)
+    if (ShowTooltip) {
+        UpdateOverlay(CurrentIcon, CurrentColor)
         SetTimer, HideOverlay, % -Tooltip_Dur
+    }
+
+    if (PlaySound) {
+        Pitch := Toggled ? On_Pitch : Off_Pitch
+        SoundBeep, %Pitch%, 100
+    }
 return
 
 SendRaw:
-    ; Safety Check: Only send if the target window is active
-    if (OnlyInTarget && !WinActive(GameID))
+    if (OnlyInTarget && !WinActive(LockedEXE))
         return
-
-    ; Simple, clean sending logic
-    Send, {%TargetKey% }
-
+    Send, {%TargetKey%}
 return
 
-UpdateOverlay(Text, Color) {
+UpdateOverlay(Symbol, Color) {
     global TooltipX, TooltipY
     Gui, Font, c%Color%
-    GuiControl, Font, StatusText
-    GuiControl,, StatusText, %Text%
-    Gui, Show, NoActivate x%TooltipX% y%TooltipY%
+    GuiControl, Font, StatusIcon
+    GuiControl,, StatusIcon, %Symbol%
+    
+    ShowArgs := (TooltipX = "Center") ? "xCenter" : "x" . TooltipX
+    Gui, Show, NoActivate %ShowArgs% y%TooltipY% w600
 }
 
 HideOverlay:
