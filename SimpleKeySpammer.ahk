@@ -34,24 +34,11 @@ Icon_Off        := "× × ×"
 ; --- INTERNAL SETUP ---
 ; ==============================================================================
 Toggled   := 0
-LockedEXE := ""
+GroupAdd, GameGroup, ahk_exe WoW.exe
+GroupAdd, GameGroup, ahk_exe GeForceNOW.exe
+GroupAdd, GameGroup, ahk_exe WowClassic.exe
 
-for index, exe in TargetProcesses {
-    Process, Exist, %exe%
-    if (ErrorLevel) {
-        LockedEXE := "ahk_exe " . exe
-        break
-    }
-}
-
-if (LockedEXE == "") {
-    MsgBox, 48, Process Not Found, None of the specified games are running.`nScript will now exit., 3
-    ExitApp
-}
-
-; This is the line that was erroring. Ensure no spaces are after ToggleLabel below.
-Hotkey, ~%ActivationKey%, ToggleLabel 
-
+; Setup the Overlay if enabled
 if (ShowTooltip) {
     Gui, +AlwaysOnTop -Caption +ToolWindow +LastFound
     Gui, Color, %CustomTrans%
@@ -65,7 +52,10 @@ return ; End of Auto-Execute Section
 ; --- LOGIC ---
 ; ==============================================================================
 
-ToggleLabel:
+; This directive ensures the hotkey ONLY works when one of your games is active
+#IfWinActive ahk_group GameGroup
+
+$~z:: ; Using the tilde (~) allows the 'z' to still reach the game if needed
     Toggled := !Toggled
     
     if (Toggled) {
@@ -89,10 +79,13 @@ ToggleLabel:
     }
 return
 
+#IfWinActive ; Reset the directive so subsequent hotkeys (if any) are global
+
 SendRaw:
-    if (OnlyInTarget && !WinActive(LockedEXE))
+    ; Double check to ensure we don't spam if you Alt-Tab while it's ON
+    if (!WinActive("ahk_group GameGroup"))
         return
-    Send, {%TargetKey%}
+    Send, %TargetKey%
 return
 
 UpdateOverlay(Symbol, Color) {
